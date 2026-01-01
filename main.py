@@ -219,7 +219,7 @@ with st.sidebar:
     st.markdown(f"### 👤 {T['lbl_name']}")
     user_name = st.text_input("Name", placeholder=T["ph_name"], label_visibility="collapsed")
     st.markdown("---")
-    st.caption("Mystic Oracle v15.0 Final")
+    st.caption("Mystic Oracle v1.0 Final")
 
 st.markdown(f"<h1 style='text-align: center;'>✨ MYSTIC ORACLE ✨</h1>", unsafe_allow_html=True)
 
@@ -397,4 +397,5 @@ with tab5:
                         model = genai.GenerativeModel(get_working_model())
                         res = model.generate_content(prompt)
                         st.markdown(f'<div class="fortune-card">{res.text}</div>', unsafe_allow_html=True)
+
                     except Exception as e: st.error(f"Hata/Error: {e}")

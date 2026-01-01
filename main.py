@@ -407,3 +407,4 @@ with tab5:
                         res = model.generate_content(prompt)
                         st.markdown(f'<div class="fortune-card">{res.text}</div>', unsafe_allow_html=True)
                     except Exception as e: st.error(f"Hata/Error: {e}")
+

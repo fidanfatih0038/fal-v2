@@ -7,17 +7,23 @@ import random
 import os
 
 # ==============================================================================
-# AYARLAR
+# AYARLAR (GÜVENLİ VERSİYON)
 # ==============================================================================
 
-# ⚠️ API ANAHTARINI BURAYA YAZ
-MY_SECRET_API_KEY = "AIzaSyDxwaVNeWcyeJWeFD_yKTyYANO5AaFOVfc" 
+# API Anahtarını kodun içine YAZMIYORUZ.
+# Streamlit'in güvenli kasasından (secrets) çekiyoruz.
+if "GEMINI_API_KEY" in st.secrets:
+    MY_SECRET_API_KEY = st.secrets["GEMINI_API_KEY"]
+else:
+    # Eğer secrets dosyasında anahtar yoksa boş bırakıyoruz (uygulamada uyarı verecek)
+    MY_SECRET_API_KEY = ""
 
 # API Konfigürasyonu
-try:
-    genai.configure(api_key=MY_SECRET_API_KEY)
-except:
-    pass
+if MY_SECRET_API_KEY:
+    try:
+        genai.configure(api_key=MY_SECRET_API_KEY)
+    except Exception as e:
+        pass
 
 st.set_page_config(page_title="Mystic Oracle", page_icon="🔮", layout="wide")
 
@@ -28,7 +34,7 @@ st.markdown("""
 <style>
     header, #MainMenu, footer {visibility: hidden;}
     .stApp { background-color: #0e001c; color: #e0c3fc; }
-    
+
     .fortune-card { 
         background: rgba(15, 15, 20, 0.9); 
         border: 1px solid #7b1fa2; 
@@ -40,7 +46,7 @@ st.markdown("""
         font-size: 16px;
         line-height: 1.6;
     }
-    
+
     div.stButton > button { 
         background: linear-gradient(135deg, #4a0072, #7b1fa2); 
         color: white; 
@@ -71,11 +77,11 @@ st.markdown("""
         50% { border-color: #ff9e00; box-shadow: 0 0 20px #ff9e00; }
         100% { border-color: #ffd700; box-shadow: 0 0 10px #ffd700; }
     }
-    
+
     /* Input Stilleri */
     .stTextInput > div > div > input { background-color: rgba(255,255,255,0.1); color: #ffd700; font-weight: bold;}
     .stDateInput > div > div > input { background-color: rgba(255,255,255,0.1); color: white; }
-    
+
     /* Uyarı Mesajı */
     .validation-warning {
         background-color: #ff3333;
@@ -90,6 +96,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # ==============================================================================
 # YARDIMCI FONKSİYONLAR
 # ==============================================================================
@@ -103,11 +110,12 @@ def get_working_model():
     except:
         return "models/gemini-1.5-flash"
 
+
 def reklam_izlet(lang):
     """Sahte reklam animasyonu gösterir"""
     title = "🔮 BAĞLANTI KURULUYOR" if lang == "tr" else "🔮 ESTABLISHING CONNECTION"
     desc = "Ücretsiz analiz için kısa bir reklam izleniyor..." if lang == "tr" else "Watching a short ad for free analysis..."
-    
+
     placeholder = st.empty()
     with placeholder.container():
         st.markdown(f"""
@@ -121,8 +129,9 @@ def reklam_izlet(lang):
             <br><small>Sponsor: Google AdMob</small>
         </div>
         """, unsafe_allow_html=True)
-        time.sleep(3) 
+        time.sleep(3)
     placeholder.empty()
+
 
 def get_zodiac_sign(day, month, lang="tr"):
     """Doğum tarihine göre burcu hesaplar"""
@@ -134,11 +143,14 @@ def get_zodiac_sign(day, month, lang="tr"):
         (12, 31, "Oğlak", "Capricorn")
     ]
     for m, d, z_tr, z_en in zodiac_dates:
-        if month == m and day <= d: return z_tr if lang == "tr" else z_en
+        if month == m and day <= d:
+            return z_tr if lang == "tr" else z_en
         elif month == m:
             next_idx = zodiac_dates.index((m, d, z_tr, z_en)) + 1
-            if next_idx < len(zodiac_dates): return zodiac_dates[next_idx][2] if lang == "tr" else zodiac_dates[next_idx][3]
+            if next_idx < len(zodiac_dates): return zodiac_dates[next_idx][2] if lang == "tr" else \
+            zodiac_dates[next_idx][3]
     return "Oğlak" if lang == "tr" else "Capricorn"
+
 
 # ==============================================================================
 # DİL SÖZLÜĞÜ (FULL SÜRÜM)
@@ -163,12 +175,15 @@ TEXTS = {
         "ph_name": "İsminizi buraya yazın...",
         "ph_soru": "Sorunuzu buraya yazın...",
         "ph_ruya": "Rüyanızı anlatın...",
-        "warn_key": "Lütfen kodun içine API Anahtarınızı yapıştırın!",
+        "warn_key": "Sistem Hatası: API Anahtarı 'Secrets' içinde bulunamadı!",
         "warn_pic": "Fotoğraf yüklemediniz.",
         "warn_name": "Lütfen isminizi giriniz.",
         "warn_wrong_img": "UYARI: Seçtiğiniz fal türüne uygun olmayan bir fotoğraf yüklediniz. Lütfen kontrol edin.",
-        "deck": ["Joker", "Büyücü", "Azize", "İmparatoriçe", "İmparator", "Aziz", "Aşıklar", "Savaş Arabası", "Güç", "Ermiş", "Kader Çarkı", "Adalet", "Asılan Adam", "Ölüm", "Denge", "Şeytan", "Kule", "Yıldız", "Ay", "Güneş", "Mahkeme", "Dünya"],
-        "zodiacs": ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"],
+        "deck": ["Joker", "Büyücü", "Azize", "İmparatoriçe", "İmparator", "Aziz", "Aşıklar", "Savaş Arabası", "Güç",
+                 "Ermiş", "Kader Çarkı", "Adalet", "Asılan Adam", "Ölüm", "Denge", "Şeytan", "Kule", "Yıldız", "Ay",
+                 "Güneş", "Mahkeme", "Dünya"],
+        "zodiacs": ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova",
+                    "Balık"],
         "statuses": ["Bekar", "Evli", "İlişkisi Var"],
         "genders": ["Kadın", "Erkek"],
         "topics": ["Genel", "Aşk", "Para", "Kariyer"]
@@ -192,12 +207,15 @@ TEXTS = {
         "ph_name": "Enter your name...",
         "ph_soru": "Type your question...",
         "ph_ruya": "Describe your dream...",
-        "warn_key": "Please paste your API Key into the code!",
+        "warn_key": "System Error: API Key not found in 'Secrets'!",
         "warn_pic": "No photo uploaded.",
         "warn_name": "Please enter your name.",
         "warn_wrong_img": "WARNING: The uploaded photo does not match the selected reading type. Please check.",
-        "deck": ["The Fool", "The Magician", "High Priestess", "Empress", "Emperor", "Hierophant", "Lovers", "Chariot", "Strength", "Hermit", "Wheel", "Justice", "Hanged Man", "Death", "Temperance", "Devil", "Tower", "Star", "Moon", "Sun", "Judgement", "World"],
-        "zodiacs": ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"],
+        "deck": ["The Fool", "The Magician", "High Priestess", "Empress", "Emperor", "Hierophant", "Lovers", "Chariot",
+                 "Strength", "Hermit", "Wheel", "Justice", "Hanged Man", "Death", "Temperance", "Devil", "Tower",
+                 "Star", "Moon", "Sun", "Judgement", "World"],
+        "zodiacs": ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius",
+                    "Capricorn", "Aquarius", "Pisces"],
         "statuses": ["Single", "Married", "In Relationship"],
         "genders": ["Female", "Male"],
         "topics": ["General", "Love", "Money", "Career"]
@@ -214,12 +232,12 @@ with st.sidebar:
     lang_choice = st.radio("Seçiniz / Select", ["🇹🇷 Türkçe", "🇺🇸 English"], label_visibility="collapsed")
     lang = "tr" if "Türkçe" in lang_choice else "en"
     T = TEXTS[lang]
-    
+
     st.markdown("---")
     st.markdown(f"### 👤 {T['lbl_name']}")
     user_name = st.text_input("Name", placeholder=T["ph_name"], label_visibility="collapsed")
     st.markdown("---")
-    st.caption("Mystic Oracle v1.0 Final")
+    st.caption("Mystic Oracle v15.0 Final")
 
 st.markdown(f"<h1 style='text-align: center;'>✨ MYSTIC ORACLE ✨</h1>", unsafe_allow_html=True)
 
@@ -236,28 +254,33 @@ with tab1:
         if img: st.image(img, width=200)
     with c2:
         # TIKLA SEÇ VAR (DOĞUM TARİHİ YOK)
-        z = st.selectbox(T["lbl_burc"], T["zodiacs"], key="s1_zodiac") 
-        g = st.selectbox(T["lbl_cins"], T["genders"], key="s1_g") 
+        z = st.selectbox(T["lbl_burc"], T["zodiacs"], key="s1_zodiac")
+        g = st.selectbox(T["lbl_cins"], T["genders"], key="s1_g")
         s = st.selectbox(T["lbl_drm"], T["statuses"], key="s2")
         t = st.selectbox(T["lbl_konu"], T["topics"], key="s3")
-        
+
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button(T["btn_fal"], key="b1"):
-            if not img: st.warning(T["warn_pic"])
-            elif "BURAYA" in MY_SECRET_API_KEY: st.error(T["warn_key"])
+            if not img:
+                st.warning(T["warn_pic"])
+            # ANAHTAR KONTROLÜ
+            elif not MY_SECRET_API_KEY:
+                st.error(T["warn_key"])
             else:
                 reklam_izlet(lang)
                 with st.spinner("..."):
                     try:
                         p_lang = "ENGLISH" if lang == "en" else "TURKISH"
                         isim_kismi = f"Name: {user_name}." if user_name else ""
-                        
+
                         # GÖRSEL DENETİM MANTIĞI
                         if lang == "tr":
-                            beklenen = "Türk kahvesi fincanı veya tabağı (telveli)" if T["coffee"] in fal_tur else "İnsan eli ayası (avuç içi)"
+                            beklenen = "Türk kahvesi fincanı veya tabağı (telveli)" if T[
+                                                                                           "coffee"] in fal_tur else "İnsan eli ayası (avuç içi)"
                             uyari_mesaji = T["warn_wrong_img"]
                         else:
-                            beklenen = "A coffee cup or saucer with grounds" if T["coffee"] in fal_tur else "A human palm/hand"
+                            beklenen = "A coffee cup or saucer with grounds" if T[
+                                                                                    "coffee"] in fal_tur else "A human palm/hand"
                             uyari_mesaji = T["warn_wrong_img"]
 
                         prompt = f"""
@@ -270,12 +293,13 @@ with tab1:
                         """
                         model = genai.GenerativeModel(get_working_model())
                         res = model.generate_content([prompt, Image.open(img)])
-                        
+
                         if "VALIDATION_FAIL" in res.text:
                             st.markdown(f'<div class="validation-warning">{uyari_mesaji}</div>', unsafe_allow_html=True)
                         else:
                             st.markdown(f'<div class="fortune-card">{res.text}</div>', unsafe_allow_html=True)
-                    except Exception as e: st.error(f"Hata/Error: {e}")
+                    except Exception as e:
+                        st.error(f"Hata/Error: {e}")
 
 # ------------------------------------------------------------------------------
 # SEKME 2: YILDIZNAME (DOĞUM TARİHLİ)
@@ -285,9 +309,11 @@ with tab2:
     bd_burc = st.date_input("Date", datetime.date(2000, 1, 1), label_visibility="collapsed", key="d2")
     zodiac_burc = get_zodiac_sign(bd_burc.day, bd_burc.month, lang)
     st.info(f"✨ Burç / Zodiac: **{zodiac_burc}**")
-    
+
     if st.button(T["btn_burc"], key="b2"):
-        if "BURAYA" in MY_SECRET_API_KEY: st.error(T["warn_key"])
+        # ANAHTAR KONTROLÜ
+        if not MY_SECRET_API_KEY:
+            st.error(T["warn_key"])
         else:
             reklam_izlet(lang)
             with st.spinner("..."):
@@ -302,17 +328,21 @@ with tab2:
                     """
                     model = genai.GenerativeModel(get_working_model())
                     res = model.generate_content(prompt)
-                    st.markdown(f'<div class="fortune-card"><h3>{zodiac_burc}</h3>{res.text}</div>', unsafe_allow_html=True)
-                except Exception as e: st.error(f"Hata/Error: {e}")
+                    st.markdown(f'<div class="fortune-card"><h3>{zodiac_burc}</h3>{res.text}</div>',
+                                unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Hata/Error: {e}")
 
 # ------------------------------------------------------------------------------
 # SEKME 3: RÜYA TABİRİ
 # ------------------------------------------------------------------------------
 with tab3:
     r_txt = st.text_area(T["ph_ruya"], height=100)
-    
+
     if st.button(T["btn_ruya"], key="b3"):
-        if "BURAYA" in MY_SECRET_API_KEY: st.error(T["warn_key"])
+        # ANAHTAR KONTROLÜ
+        if not MY_SECRET_API_KEY:
+            st.error(T["warn_key"])
         else:
             reklam_izlet(lang)
             with st.spinner("..."):
@@ -323,7 +353,8 @@ with tab3:
                     model = genai.GenerativeModel(get_working_model())
                     res = model.generate_content(prompt)
                     st.markdown(f'<div class="fortune-card">{res.text}</div>', unsafe_allow_html=True)
-                except Exception as e: st.error(f"Hata/Error: {e}")
+                except Exception as e:
+                    st.error(f"Hata/Error: {e}")
 
 # ------------------------------------------------------------------------------
 # SEKME 4: TAROT (DOĞUM KARTI HESAPLAMALI)
@@ -334,16 +365,19 @@ with tab4:
         st.write(f"📅 **{T['lbl_birth']}**")
         bd_tarot = st.date_input("Date", datetime.date(2000, 1, 1), label_visibility="collapsed", key="d4")
         zodiac_tarot = get_zodiac_sign(bd_tarot.day, bd_tarot.month, lang)
-        tg = st.selectbox(T["lbl_cins"], T["genders"], key="t_gender_final") 
+        tg = st.selectbox(T["lbl_cins"], T["genders"], key="t_gender_final")
         ts = st.selectbox(T["lbl_drm"], T["statuses"], key="t2")
     with ct2:
         st.write(f"🔮 **{T['lbl_konu']}**")
         tq = st.text_input("Soru", placeholder=T["ph_soru"], label_visibility="collapsed", key="t3")
         st.info(f"Burç: **{zodiac_tarot}**")
-        
+
     if st.button(T["btn_tarot"], key="b4"):
-        if not tq: st.warning(T["ph_soru"])
-        elif "BURAYA" in MY_SECRET_API_KEY: st.error(T["warn_key"])
+        if not tq:
+            st.warning(T["ph_soru"])
+        # ANAHTAR KONTROLÜ
+        elif not MY_SECRET_API_KEY:
+            st.error(T["warn_key"])
         else:
             reklam_izlet(lang)
             with st.spinner("..."):
@@ -351,7 +385,7 @@ with tab4:
                     cards = random.sample(T["deck"], 3)
                     p_lang = "ENGLISH" if lang == "en" else "TURKISH"
                     isim_kismi = f"Name: {user_name}." if user_name else ""
-                    
+
                     prompt = f"""
                     You are a Tarot Reader (Real person persona). Cards: {cards}.
                     User: {isim_kismi} DOB: {bd_tarot} (Zodiac: {zodiac_tarot}).
@@ -362,11 +396,14 @@ with tab4:
                     """
                     model = genai.GenerativeModel(get_working_model())
                     res = model.generate_content(prompt)
-                    
+
                     cc1, cc2, cc3 = st.columns(3)
-                    cc1.info(cards[0]); cc2.success(cards[1]); cc3.warning(cards[2])
+                    cc1.info(cards[0]);
+                    cc2.success(cards[1]);
+                    cc3.warning(cards[2])
                     st.markdown(f'<div class="fortune-card">{res.text}</div>', unsafe_allow_html=True)
-                except Exception as e: st.error(f"Hata/Error: {e}")
+                except Exception as e:
+                    st.error(f"Hata/Error: {e}")
 
 # ------------------------------------------------------------------------------
 # SEKME 5: İSİM VE NUMEROLOJİ ANALİZİ
@@ -375,12 +412,14 @@ with tab5:
     st.markdown(f"<h3 style='text-align:center;'>🔢 {T['tabs'][4]}</h3>", unsafe_allow_html=True)
     st.write(f"📅 **{T['lbl_birth']}**")
     bd_isim = st.date_input("Date", datetime.date(2000, 1, 1), label_visibility="collapsed", key="d5")
-    
+
     if not user_name:
         st.info(T["warn_name"])
     else:
         if st.button(T["btn_isim"], key="b5"):
-            if "BURAYA" in MY_SECRET_API_KEY: st.error(T["warn_key"])
+            # ANAHTAR KONTROLÜ
+            if not MY_SECRET_API_KEY:
+                st.error(T["warn_key"])
             else:
                 reklam_izlet(lang)
                 with st.spinner("..."):
@@ -397,5 +436,5 @@ with tab5:
                         model = genai.GenerativeModel(get_working_model())
                         res = model.generate_content(prompt)
                         st.markdown(f'<div class="fortune-card">{res.text}</div>', unsafe_allow_html=True)
-
-                    except Exception as e: st.error(f"Hata/Error: {e}")
+                    except Exception as e:
+                        st.error(f"Hata/Error: {e}")
